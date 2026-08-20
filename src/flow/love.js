@@ -4,7 +4,7 @@ import {ABL, POS_AB} from '../data/abilities.js?v=1.5.5';
 import {card, choose, board} from '../ui/dom.js?v=1.5.5';
 import {addAb, addAbStat, statBonusTxt, abGainTxt} from '../engine/ability.js?v=1.5.5';
 /* 出廠預設為全虛構人名;玩家可透過隱藏編輯器自訂名單(僅存於玩家本機) */
-export let CHEER=['林曉晴','陳若彤','張沛慈','王詠恩','許昀熙','蘇采蓁','周依潔','郭芷萱'];
+export let CHEER=['晴晴','小雨','沛慈','詠恩','昀熙','采榛','依潔','芷萱','思涵'];
 export const CHEER_DEFAULT=CHEER.slice();
 export let CHEER_SAFE=['馮海莎']; /* 不會變成小三的名單:可交往/結婚,永不出現在外遇人選 */
 export function datePool(){ /* 交往/結婚名單 */
@@ -32,13 +32,13 @@ export function loveEvent(next){
     if(chance(30)){ /* 三成機率先來一段插曲,結束後照樣問婚 */
       const r=R()*100;
       if(r<40){ const t=pick(affairPool().filter(n=>n!==L.partner));
-        choose(`聚餐散場，${t} 說順路想搭你的車`,[
-          {t:'讓她上車（賭一把）',warn:true,s:'沒被抓到＝體力提升｜被抓到＝能力下跌、當年分手率+30%',f:()=>{
+        choose(`聚餐散場，${t} 把手環上你的腰`,[
+          {t:'偷偷牽起她的手',warn:true,s:'沒被抓到＝體力提升｜被抓到＝能力下跌、當年分手率+30%',f:()=>{
             L.affairs++;
             if(chance(55)){ const gt=loveGainTxt('sta',2); board(1);
-              card('bad','深夜兜風',`沒有人拍到。你把方向盤握得很緊——${gt}。（這條路不會有好結局）`); ask(); }
+              card('bad','深夜熱吻',`沒有人拍到。你把${t}摟得很緊——${gt}。（這條路不會有好結局）`); ask(); }
             else loveCaughtDating(next); }},
-          {t:`「不順路。」直接載 ${L.partner} 回家`,main:true,s:'感情穩固，絕對不虧',f:()=>{
+          {t:`「我有老婆了。」當面吻了 ${L.partner} ，一起走回家`,main:true,s:'感情穩固，絕對不虧',f:()=>{
             const gt=loveGainTxt('sta',1); board(1);
             card('good','正確答案',`你傳訊息給 ${L.partner}：「馬上到。」——${gt}。`); ask(); }}]); return; }
       if(r<70){ const gt=loveGainTxt('sta',1); board(1);
@@ -52,7 +52,7 @@ export function loveEvent(next){
   /* ---------- 未婚/離婚:緋聞 → 雙重關卡 → 交往 ---------- */
   if(L.st==='single'||L.st==='divorced'){
     const p=pick(datePool());
-    card('info','場外話題',`你和啦啦隊女神 <b class="hl">${p}</b> 被拍到球場外同框，緋聞登上娛樂版頭條。${L.exes.length?'（評論區：「離過婚還這麼搶手」）':''}`);
+    card('info','場外話題',`你和啦啦隊女神 <b class="hl">${p}</b> 被拍到球場外親熱，緋聞登上娛樂版頭條。${L.exes.length?'（評論區：「離過婚還這麼搶手」）':''}`);
     choose('記者把麥克風遞到你面前：「兩位是在交往嗎？」',[
       {t:'大方承認：「請大家祝福我們」',s:'還要看她那邊敢不敢承認（球團有禁愛令傳聞）',f:()=>{
         if(chance(65)){ L.st='dating'; L.partner=p; L.dyrs=0; L.datedTimes=(L.datedTimes||0)+1;
@@ -82,11 +82,11 @@ export function loveEvent(next){
     const homeVideoText=L.kids===0
       ?`${L.partner} 在鏡頭那頭笑著向你揮手。`
       :`${L.partner} 和${kidWord}在鏡頭那頭揮手。`;
-    choose(`客場飯店酒吧，${t} 傳來訊息：「睡了嗎？」`,[
+    choose(`${t} 傳來一張性感的照片：「睡了嗎？」`,[
       {t:'赴約（賭一把）',warn:true,s:'沒被抓到＝體力提升｜被抓到＝能力下跌、婚姻危機',f:()=>{
         L.affairs++;
         if(chance(55)){ const gt=loveGainTxt('sta',2); board(1);
-          card('bad','深夜行程',`你僥倖沒被拍到。不知為何，罪惡感反而讓你精神亢奮——${gt}。（你知道這不會有好下場）`);
+          card('bad','深夜行程',`你跟${t}度過了美妙的夜晚，你很滿足——${gt}。（你知道這不會有好下場）`);
           next(); }
         else loveCaught(next); }},
       {t:rejectAffairText,main:true,s:'家庭和睦，絕對不虧',f:()=>{
@@ -164,4 +164,4 @@ export function loveGainTxt(k,amt){ /* 戀愛事件加點:機制同事件卡(add
   if(g>0)return abGainTxt(k,used,g);
   if(over>0)return `${ABL[k]} 已達潛力上限，${Math.round(amt)} 點全數轉為${statBonusTxt(over)}`;
   return abGainTxt(k,amt,0);
-}
+ }
