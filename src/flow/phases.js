@@ -147,9 +147,9 @@ export function updateTeamTenureTraits(){
   S.teamSeasons=(S.teamSeasons||0)+1; /* 同一球團全部球季：二軍、復健年也算忠誠年資。 */
   if(LV[S.lv].top&&!S.skipMid)S.teamYears=(S.teamYears||0)+1; /* 全年復健算球團年資，但不算實際頂級球季。 */
 
-  if(!S.traits.goldcloth&&S.orgTeam==='台中猛獁'&&(S.teamTally.CPBL&&S.teamTally.CPBL['台中猛獁']>=10)){
+  if(!S.traits.goldcloth&&S.orgTeam==='中信兄弟'&&(S.teamTally.CPBL&&S.teamTally.CPBL['中信兄弟']>=10)){
     S.traits.goldcloth=true;
-    card('gold','隱藏屬性解鎖：黃金聖衣','效力 台中猛獁 滿十年，你愛猛獁，不離不棄。'); board(1);
+    card('gold','隱藏屬性解鎖：黃金聖衣','效力 中信兄弟 滿十年，你愛兄弟，不離不棄。'); board(1);
   }
 
   if(!S.traits.franchise&&S.teamYears>=7&&S.champThisTeam&&S.champTeam===S.orgTeam){
