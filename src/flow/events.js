@@ -19,18 +19,25 @@ export function checkChampionTrait(){
   return false;
 }
 export function evOdds(){ /* 事件卡成功率:顯示與擲骰共用同一來源 */
-  let base=(S.traits.genius||S.traits.late||S.traits.clutch)?70:50; /* 天才/大器晚成/大心臟 70 */
-  if(S.traits.thief)base-=10; /* 薪水小倫 -10 */
-  /* 大心臟(2026-08-20 調弱)：不再免除豪賭的 -15 懲罰。非天才的效果是「全力成功率提升到
-     與天才同等」(base 進 70 後照扣 15 → 55%，正好是天才的全力線)；本身已是天才者這條
-     對他無感，改為全力 +5(→60%)。調弱前大心臟全力 70%、訓練事件期望值 2.2，遠壓過保守
-     與普通的 0.8，豪賭是無腦最優解；調弱後非天才 0.75、天才 1.6，三條路線拉回同一水平。 */
-  const boldPen=15;
-  const clutchBold=(S.traits.clutch&&S.traits.genius)?5:0;
-  /* 愛將(2026-08-20 調弱)：出賽保底與守位紅利已經夠有價值，「普通」加成由 20 降為 5——
-     原本天才+愛將的普通應對高達 90%。保守與全力不受影響,薪水小倫的 -10 已含在 base 裡。 */
+   // 1. 基礎隨機 1 ~ 100
+  let base = Math.floor(Math.random() * 100) + 1;
+  // 2. 特質加成/扣減
+  /* 愛將:只加「普通」這一路,幅度比照天才對整體的 +20。保守與全力不受影響,
+     薪水小倫的 -10 已含在 base 裡,兩者可正常疊加。 */
+  if(S.traits.genius || S.traits.late || S.traits.clutch) base +=20; /* 天才/大器晚成/大心臟 +20 */
+  if(S.traits.thief) base -= 10; /* 薪水小倫 -10 */
+  // 3. 大心臟判斷 (同時有大心臟跟天才不打折，沒有大心臟打9折)
+  const boldPen =(S.traits.clutch&&S.traits.genius)?1:0.9;
   const normBonus=S.traits.favorite?5:0;
-  return {safe:Math.min(95,base+20), norm:Math.min(95,base+normBonus), bold:base-boldPen+clutchBold};
+  // 4. 計算三個選項並用 Math.min(100, ...) 限制最大值不超過 100，同時用 Math.round 四捨五入
+  let saf = Math.min(100, Math.round(base * 1.5));
+  let nor = Math.min(100, Math.round(base * 1.2 + normBonus));
+  let bol = Math.min(100, Math.round(base * boldPen));
+  // 5. 確保成功率不會低於 0%（防止出現負數）
+  saf = Math.max(0, saf);
+  nor = Math.max(0, nor);
+  bol = Math.max(0, bol);
+  return {safe: saf, norm: nor, bold: bol};
 }
 export function eventEligible(ev,state){
   const s=state||S;
@@ -108,7 +115,7 @@ function showEvent(ev,after){
     ['safe','加成／減益幅度最小',false,false],
   ].map(([mode,scale,warn,main])=>{
     const c=ev.choices[mode];
-    return {t:c.label,warn,main,center:true,s:`成功率 ${od[mode]}%｜${scale}`,f:()=>resolveEvent(ev,mode,after)};
+    return {t:c.label,warn,main,center:true,s:`成功率 ${od[mode]}%｜${scale}`,f:()=>resolveEvent(ev,mode,after,od)}; /*這裡是我要改機率的部分*/
   });
   choose(`事件｜${EVENT_CATEGORY_NAMES[ev.category]}｜${ev.n}<br><small>${ev.intro}</small>`,opts);
 }
@@ -154,9 +161,9 @@ export function drawEvents(done){
     f:()=>runEventCards(drawEventCards(route.combination,S),done,0)
   })));
 }
-export function resolveEvent(ev,mode,done){
+export function resolveEvent(ev,mode,done,currentOd){
   done=done||function(){};
-  const od=evOdds(); /* 與畫面顯示同源,保證所見即所得 */
+  const od=currentOd||evOdds(); /* 優先接收並使用UI顯示時已產生的同一組od */
   if(mode==='safe')S.cntSave++;
   let good,tag;
   if(mode==='safe'){ good=chance(od.safe); tag='保守應對'; }
